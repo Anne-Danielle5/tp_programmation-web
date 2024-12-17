@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Education AURA</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, sans-serif;
+            background-color: #b2bdc6;
+        }
+
+        table {
+            border: 3px solid #6495ed;
+            border-collapse: collapse;
+            width: 80%;
+            margin: auto;
+        }
+
+        th, td {
+            border: 1px solid #6495ed;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #EFF6FF;
+        }
+
+        input, button {
+            margin: 10px;
+        }
+
+        .filter-container {
+            text-align: center;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Bienvenue dans notre page Web</h2>
+
+    <!-- Input CSV -->
+    <div class="filter-container">
+        <input type="file" id="csvFile" accept=".csv">
+        <button onclick="loadCSV()">Charger le fichier</button>
+    </div>
+
+    <!-- Filter Inputs -->
+    <div class="filter-container">
+        <input type="text" id="filterPostal" placeholder="Filtrer par Code postal">
+        <input type="text" id="filterAcademy" placeholder="Filtrer par Académie">
+        <input type="text" id="filterSector" placeholder="Filtrer par Secteur">
+        <button onclick="applyFilters()">Appliquer le filtre</button>
+    </div>
+
+    <!-- Table -->
+    <table>
+        <thead>
+            <tr id="tableHeaders">
+            </tr>
+        </thead>
+        <tbody id="rendu">
+        </tbody>
+    </table>
+
+    <script>
+        let jsonObjects = []; // Stocke les données CSV en JSON
+        let displayedObjects = []; // Pour filtrer et afficher les résultats
+
+        // Fonction pour charger et convertir le CSV en JSON
+        function loadCSV() {
+            const csvFile = document.getElementById('csvFile').files[0];
+            if (!csvFile) {
+                alert('Veuillez sélectionner un fichier CSV.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsText(csvFile);
+
+            reader.onload = function (e) {
+                const csvText = e.target.result;
+                const lines = csvText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                const entete = lines[0];
+                const tabEntete = entete.split(';');
+
+                jsonObjects = [];
+                displayedObjects = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(';');
+                    let jsonObject = {};
+
+                    for (let j = 0; j < tabEntete.length; j++) {
+                        const key = tabEntete[j].trim();
+                        const value = values[j] ? values[j].trim() : '';
+                        jsonObject[key] = value;
+                    }
+
+                    jsonObjects.push(jsonObject);
+                }
+
+                displayedObjects = [...jsonObjects]; // Initialiser l'affichage complet
+                renderTable(displayedObjects);
+            }
+        }
+
+        // Fonction pour appliquer les filtres
+        function applyFilters() {
+            const postalFilter = document.getElementById('filterPostal').value.toLowerCase();
+            const academyFilter = document.getElementById('filterAcademy').value.toLowerCase();
+            const sectorFilter = document.getElementById('filterSector').value.toLowerCase();
+
+            displayedObjects = jsonObjects.filter(obj => {
+                const postal = obj['Code postaux'] ? obj['Code postaux'].substring(0, 2).toLowerCase() : '';
+                const academy = obj['Academie'] ? obj['Academie'].toLowerCase() : '';
+                const sector = obj['Secteur'] ? obj['Secteur'].toLowerCase() : '';
+
+                return (
+                    (!postalFilter || postal.includes(postalFilter)) &&
+                    (!academyFilter || academy.includes(academyFilter)) &&
+                    (!sectorFilter || sector.includes(sectorFilter))
+                );
+            });
+
+            renderTable(displayedObjects);
+        }
+
+        // Fonction pour afficher les données dans la table
+        function renderTable(data) {
+            const tableHeaders = document.getElementById("tableHeaders");
+            const tbody = document.getElementById("rendu");
+
+            // Réinitialiser les en-têtes et le contenu du tableau
+            tableHeaders.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (data.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='100%'>Aucune donnée trouvée</td></tr>";
+                return;
+            }
+
+            // Créer dynamiquement les en-têtes à partir des clés du premier objet
+            const keys = Object.keys(data[0]);
+            keys.forEach(key => {
+                const th = document.createElement("th");
+                th.textContent = key;
+                tableHeaders.appendChild(th);
+            });
+
+            // Ajouter les lignes de données
+            data.forEach(obj => {
+                const row = tbody.insertRow();
+                keys.forEach(key => {
+                    const cell = row.insertCell();
+                    cell.textContent = obj[key];
+                });
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
