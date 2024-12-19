@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <nav>
+        <ul>
+            <li><a href="Accueil.html">Accueil</a></li>
+            <li><a href="Intégration.html">Recensement des écoles primaires en France</a></li>
+            <li><a href="Secteur.html">Indicateurs</a></li>
+        </ul>
+    </nav>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Education AURA</title>
+    <title>Recensement des écoles primaires en France</title>
     <style>
         body {
             font-family: Verdana, Geneva, sans-serif;
@@ -27,7 +34,7 @@
             background-color: #EFF6FF;
         }
 
-        input, button {
+        input, button, select {
             margin: 10px;
         }
 
@@ -46,11 +53,17 @@
         <button onclick="loadCSV()">Charger le fichier</button>
     </div>
 
-    <!-- Filter Inputs -->
+    <!-- Filter Inputs (with select dropdowns for unique values) -->
     <div class="filter-container">
-        <input type="text" id="filterPostal" placeholder="Filtrer par Code postal">
-        <input type="text" id="filterAcademy" placeholder="Filtrer par Académie">
-        <input type="text" id="filterSector" placeholder="Filtrer par Secteur">
+        <select id="filterPostal">
+            <option value="">Filtrer par Code postal (Tous)</option>
+        </select>
+        <select id="filterAcademy">
+            <option value="">Filtrer par Académie (Tous)</option>
+        </select>
+        <select id="filterSector">
+            <option value="">Filtrer par Secteur (Tous)</option>
+        </select>
         <button onclick="applyFilters()">Appliquer le filtre</button>
     </div>
 
@@ -103,7 +116,56 @@
 
                 displayedObjects = [...jsonObjects]; // Initialiser l'affichage complet
                 renderTable(displayedObjects);
+                saveDataToLocalStorage(jsonObjects, 'schoolData'); // Sauvegarder les données dans le localStorage
+
+                // Mettre à jour les filtres avec les valeurs uniques
+                updateFilters();
             }
+        }
+
+        // Fonction pour sauvegarder les données dans le localStorage
+        function saveDataToLocalStorage(data, key) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        // Fonction pour extraire les valeurs uniques d'une colonne
+        function getUniqueValues(column) {
+            const values = jsonObjects.map(obj => obj[column]).filter(value => value !== undefined && value !== "");
+            return [...new Set(values)];
+        }
+
+        // Fonction pour mettre à jour les options des filtres
+        function updateFilters() {
+            const postalFilter = document.getElementById('filterPostal');
+            const academyFilter = document.getElementById('filterAcademy');
+            const sectorFilter = document.getElementById('filterSector');
+
+            // Récupérer les valeurs uniques pour chaque filtre
+            const uniquePostals = getUniqueValues('Code postaux');
+            const uniqueAcademies = getUniqueValues('Academie');
+            const uniqueSectors = getUniqueValues('Secteur');
+
+            // Ajouter les options uniques dans chaque select
+            uniquePostals.forEach(postal => {
+                const option = document.createElement('option');
+                option.value = postal;
+                option.textContent = postal;
+                postalFilter.appendChild(option);
+            });
+
+            uniqueAcademies.forEach(academy => {
+                const option = document.createElement('option');
+                option.value = academy;
+                option.textContent = academy;
+                academyFilter.appendChild(option);
+            });
+
+            uniqueSectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorFilter.appendChild(option);
+            });
         }
 
         // Fonction pour appliquer les filtres
@@ -112,6 +174,7 @@
             const academyFilter = document.getElementById('filterAcademy').value.toLowerCase();
             const sectorFilter = document.getElementById('filterSector').value.toLowerCase();
 
+            // Si "Tous" est sélectionné, réinitialiser le filtre à toutes les données
             displayedObjects = jsonObjects.filter(obj => {
                 const postal = obj['Code postaux'] ? obj['Code postaux'].substring(0, 2).toLowerCase() : '';
                 const academy = obj['Academie'] ? obj['Academie'].toLowerCase() : '';
@@ -125,6 +188,7 @@
             });
 
             renderTable(displayedObjects);
+            saveDataToLocalStorage(displayedObjects, 'filteredSchoolData'); // Mettre à jour les données filtrées dans le localStorage
         }
 
         // Fonction pour afficher les données dans la table
@@ -161,7 +225,3 @@
     </script>
 </body>
 </html>
-
-
-
-
