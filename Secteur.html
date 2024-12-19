@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
     <nav>
@@ -19,109 +18,179 @@
             text-align: center;
         }
 
-        .filter-container {
-            margin: 20px;
-        }
-
-        #chart {
+        #charts {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             margin: 20px;
+        }
+
+        .chart-container {
+            margin-bottom: 50px;
         }
     </style>
 </head>
 <body>
     <h2>Bienvenue sur la page des Indicateurs</h2>
-
-    <!-- Chart Container -->
-    <div id="chart"></div>
+    <div id="charts">
+        <div class="chart-container" id="pieChart"></div>
+        <div class="chart-container" id="barChart"></div>
+    </div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const data = JSON.parse(localStorage.getItem('filteredSchoolData'));
-            if (data) {
-                updateChart(data);
+        document.addEventListener('DOMContentLoaded', function () {
+            let data = JSON.parse(localStorage.getItem('filteredSchoolData'));
+
+            if (!data || data.length === 0) {
+                data = JSON.parse(localStorage.getItem('schoolData'));
+            }
+
+            if (!data || data.length === 0) {
+                alert('Aucune donnée trouvée. Veuillez charger les données dans la page "Recensement des écoles primaires".');
             } else {
-                alert('Aucune donnée trouvée. Veuillez d\'abord charger les données sur la page "Recensement des écoles primaires en France".');
+                renderPieChart(data);
+                renderBarChart(data);
             }
         });
 
-        // Fonction pour mettre à jour le graphique
-        function updateChart(data) {
-            const chartContainer = d3.select("#chart");
-            chartContainer.selectAll("*").remove(); // Réinitialiser le conteneur du graphique
+        function renderPieChart(data) {
+            const chartContainer = d3.select("#pieChart");
+            chartContainer.selectAll("*").remove();
 
-            if (data.length === 0) {
-                return;
-            }
+            const width = 600;
+            const height = 600;
+            const radius = Math.min(width, height) / 2;
 
-            // Définir la largeur, la hauteur et le rayon du graphique
-            const vLargeur = 600;
-            const vHauteur = 600;
-            const rayon = Math.min(vLargeur, vHauteur) / 2;
+            const svg = chartContainer.append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-            // Création du SVG avec un container (groupe g)
-            const vSvg = chartContainer.append('svg')
-                .attr('width', vLargeur)
-                .attr('height', vHauteur)
-                .append('g')
-                .attr('transform', 'translate(' + vLargeur / 2 + ',' + vHauteur / 2 + ')');
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-            // Création d'un tableau de couleurs
-            const vCouleurs = d3.scaleOrdinal(d3.schemeCategory10);
-
-            // Préparation des données pour le graphique
-            const secteurs = data.reduce((acc, curr) => {
-                const secteur = curr['Secteur'];
-                if (secteur) {
-                    if (!acc[secteur]) {
-                        acc[secteur] = 0;
+            const sectors = data.reduce((acc, curr) => {
+                const sector = curr["Secteur"];
+                if (sector) {
+                    if (!acc[sector]) {
+                        acc[sector] = 0;
                     }
-                    acc[secteur]++;
+                    acc[sector]++;
                 }
                 return acc;
             }, {});
 
-            const secteursArray = Object.keys(secteurs).map(secteur => ({
-                secteur,
-                value: secteurs[secteur]
+            const sectorArray = Object.keys(sectors).map(sector => ({
+                sector,
+                value: sectors[sector]
             }));
 
-            // Création de l'objet Secteur (pie) du graphique
-            const vPie = d3.pie()
-                .value(d => d.value)
-                .sort(null);
+            const total = sectorArray.reduce((sum, d) => sum + d.value, 0);
 
-            // Création de l'objet Arc du graphique (avec les rayons intérieur et extérieur)
-            const vArc = d3.arc()
-                .outerRadius(rayon * 0.75)
+            const pie = d3.pie().value(d => d.value);
+
+            const arc = d3.arc()
+                .outerRadius(radius * 0.8)
                 .innerRadius(0);
 
-            // Création des objets arcs dans le graphique
-            const g = vSvg.selectAll('.arc')
-                .data(vPie(secteursArray))
-                .enter().append('g')
-                .attr('class', 'arc');
+            const arcs = svg.selectAll(".arc")
+                .data(pie(sectorArray))
+                .enter()
+                .append("g")
+                .attr("class", "arc");
 
-            // Création des path pour dessiner les arcs à l'écran avec les couleurs associées
-            g.append('path')
-                .attr('d', vArc)
-                .attr('class', 'arc')
-                .attr('fill', (d, i) => vCouleurs(i))
-                .style('stroke', 'black')
-                .style('stroke-width', 0.5);
+            arcs.append("path")
+                .attr("d", arc)
+                .attr("fill", (d, i) => color(i));
 
-            // Ajout des valeurs dans les secteurs (positionnées au centre, fonction centroid())
-            g.append('text')
-                .attr('transform', d => 'translate(' + vArc.centroid(d) + ')')
-                .style("font-size", "15px")
-                .style("font-weight", 'bold')
-                .text(d => d.data.secteur + ': ' + d.data.value);
+            arcs.append("text")
+                .attr("transform", d => `translate(${arc.centroid(d)})`)
+                .style("font-size", "12px")
+                .style("text-anchor", "middle")
+                .text(d => `${((d.data.value / total) * 100).toFixed(1)}%`);
+
+            chartContainer.append("h3").text("Répartition des écoles par secteur");
+        }
+
+        function renderBarChart(data) {
+            const chartContainer = d3.select("#barChart");
+            chartContainer.selectAll("*").remove();
+
+            const width = 800;
+            const height = 400;
+            const margin = { top: 40, right: 20, bottom: 60, left: 100 };
+
+            const svg = chartContainer.append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+            const variables = [
+                "Nombre d'eleves en CP hors ULIS",
+                "Nombre d'eleves en CE1 hors ULIS",
+                "Nombre d'eleves en CE2 hors ULIS",
+                "Nombre d'eleves en CM1 hors ULIS",
+                "Nombre d'eleves en CM2 hors ULIS"
+            ];
+
+            const totals = variables.map(variable => {
+                return {
+                    variable,
+                    total: data.reduce((sum, curr) => {
+                        const value = parseInt(curr[variable], 10) || 0;
+                        return sum + value;
+                    }, 0)
+                };
+            });
+
+            const x = d3.scaleBand()
+                .domain(totals.map(d => d.variable))
+                .range([0, width - margin.left - margin.right])
+                .padding(0.2);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(totals, d => d.total)])
+                .nice()
+                .range([height - margin.top - margin.bottom, 0]);
+
+            svg.append("g")
+                .selectAll("rect")
+                .data(totals)
+                .enter()
+                .append("rect")
+                .attr("x", d => x(d.variable))
+                .attr("y", d => y(d.total))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - margin.top - margin.bottom - y(d.total))
+                .attr("fill", "steelblue");
+
+            svg.append("g")
+                .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-0.8em")
+                .attr("dy", "0.15em")
+                .attr("transform", "rotate(-40)");
+
+            svg.append("g")
+                .call(d3.axisLeft(y));
+
+            svg.append("text")
+                .attr("x", (width - margin.left - margin.right) / 2)
+                .attr("y", -margin.top / 2)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("Nombre total d'élèves par niveau");
+
+            chartContainer.append("h3").text("Répartition des élèves par niveau (hors ULIS)");
         }
     </script>
 </body>
 </html>
+
 
 
