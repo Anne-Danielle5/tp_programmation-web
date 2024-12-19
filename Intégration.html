@@ -53,7 +53,7 @@
         <button onclick="loadCSV()">Charger le fichier</button>
     </div>
 
-    <!-- Filter Inputs (with select dropdowns for unique values) -->
+    <!-- Filter Inputs -->
     <div class="filter-container">
         <select id="filterPostal">
             <option value="">Filtrer par Code postal (Tous)</option>
@@ -70,18 +70,15 @@
     <!-- Table -->
     <table>
         <thead>
-            <tr id="tableHeaders">
-            </tr>
+            <tr id="tableHeaders"></tr>
         </thead>
-        <tbody id="rendu">
-        </tbody>
+        <tbody id="rendu"></tbody>
     </table>
 
     <script>
-        let jsonObjects = []; // Stocke les données CSV en JSON
-        let displayedObjects = []; // Pour filtrer et afficher les résultats
+        let jsonObjects = [];
+        let displayedObjects = [];
 
-        // Fonction pour charger et convertir le CSV en JSON
         function loadCSV() {
             const csvFile = document.getElementById('csvFile').files[0];
             if (!csvFile) {
@@ -104,79 +101,62 @@
                 for (let i = 1; i < lines.length; i++) {
                     const values = lines[i].split(';');
                     let jsonObject = {};
-
                     for (let j = 0; j < tabEntete.length; j++) {
                         const key = tabEntete[j].trim();
                         const value = values[j] ? values[j].trim() : '';
                         jsonObject[key] = value;
                     }
-
                     jsonObjects.push(jsonObject);
                 }
 
-                displayedObjects = [...jsonObjects]; // Initialiser l'affichage complet
+                displayedObjects = [...jsonObjects];
                 renderTable(displayedObjects);
-                saveDataToLocalStorage(jsonObjects, 'schoolData'); // Sauvegarder les données dans le localStorage
-
-                // Mettre à jour les filtres avec les valeurs uniques
+                localStorage.setItem('schoolData', JSON.stringify(jsonObjects)); // Sauvegarder les données initiales
                 updateFilters();
             }
         }
 
-        // Fonction pour sauvegarder les données dans le localStorage
-        function saveDataToLocalStorage(data, key) {
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-
-        // Fonction pour extraire les valeurs uniques d'une colonne
         function getUniqueValues(column) {
             const values = jsonObjects.map(obj => obj[column]).filter(value => value !== undefined && value !== "");
             return [...new Set(values)];
         }
 
-        // Fonction pour mettre à jour les options des filtres
         function updateFilters() {
             const postalFilter = document.getElementById('filterPostal');
             const academyFilter = document.getElementById('filterAcademy');
             const sectorFilter = document.getElementById('filterSector');
 
-            // Récupérer les valeurs uniques pour chaque filtre
-            const uniquePostals = getUniqueValues('Code postaux');
-            const uniqueAcademies = getUniqueValues('Academie');
-            const uniqueSectors = getUniqueValues('Secteur');
+            [postalFilter, academyFilter, sectorFilter].forEach(filter => filter.innerHTML = '<option value="">Tous</option>');
 
-            // Ajouter les options uniques dans chaque select
-            uniquePostals.forEach(postal => {
+            getUniqueValues('Code postaux').forEach(value => {
                 const option = document.createElement('option');
-                option.value = postal;
-                option.textContent = postal;
+                option.value = value;
+                option.textContent = value;
                 postalFilter.appendChild(option);
             });
 
-            uniqueAcademies.forEach(academy => {
+            getUniqueValues('Academie').forEach(value => {
                 const option = document.createElement('option');
-                option.value = academy;
-                option.textContent = academy;
+                option.value = value;
+                option.textContent = value;
                 academyFilter.appendChild(option);
             });
 
-            uniqueSectors.forEach(sector => {
+            getUniqueValues('Secteur').forEach(value => {
                 const option = document.createElement('option');
-                option.value = sector;
-                option.textContent = sector;
+                option.value = value;
+                option.textContent = value;
                 sectorFilter.appendChild(option);
             });
         }
 
-        // Fonction pour appliquer les filtres
         function applyFilters() {
             const postalFilter = document.getElementById('filterPostal').value.toLowerCase();
             const academyFilter = document.getElementById('filterAcademy').value.toLowerCase();
             const sectorFilter = document.getElementById('filterSector').value.toLowerCase();
 
-            // Si "Tous" est sélectionné, réinitialiser le filtre à toutes les données
             displayedObjects = jsonObjects.filter(obj => {
-                const postal = obj['Code postaux'] ? obj['Code postaux'].substring(0, 2).toLowerCase() : '';
+                const postal = obj['Code postaux'] ? obj['Code postaux'].toLowerCase() : '';
                 const academy = obj['Academie'] ? obj['Academie'].toLowerCase() : '';
                 const sector = obj['Secteur'] ? obj['Secteur'].toLowerCase() : '';
 
@@ -188,15 +168,14 @@
             });
 
             renderTable(displayedObjects);
-            saveDataToLocalStorage(displayedObjects, 'filteredSchoolData'); // Mettre à jour les données filtrées dans le localStorage
+            localStorage.setItem('filteredSchoolData', JSON.stringify(displayedObjects)); // Sauvegarder les données filtrées
+            console.log('Données sauvegardées :', displayedObjects);
         }
 
-        // Fonction pour afficher les données dans la table
         function renderTable(data) {
             const tableHeaders = document.getElementById("tableHeaders");
             const tbody = document.getElementById("rendu");
 
-            // Réinitialiser les en-têtes et le contenu du tableau
             tableHeaders.innerHTML = "";
             tbody.innerHTML = "";
 
@@ -205,7 +184,6 @@
                 return;
             }
 
-            // Créer dynamiquement les en-têtes à partir des clés du premier objet
             const keys = Object.keys(data[0]);
             keys.forEach(key => {
                 const th = document.createElement("th");
@@ -213,7 +191,6 @@
                 tableHeaders.appendChild(th);
             });
 
-            // Ajouter les lignes de données
             data.forEach(obj => {
                 const row = tbody.insertRow();
                 keys.forEach(key => {
