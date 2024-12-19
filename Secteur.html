@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <nav>
+        <ul>
+            <li><a href="Accueil.html">Accueil</a></li>
+            <li><a href="Intégration.html">Recensement des écoles primaires en France</a></li>
+            <li><a href="Secteur.html">Indicateurs</a></li>
+        </ul>
+    </nav>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indicateurs - Education AURA</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, sans-serif;
+            background-color: #b2bdc6;
+            text-align: center;
+        }
+
+        .filter-container {
+            margin: 20px;
+        }
+
+        #chart {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Bienvenue sur la page des Indicateurs</h2>
+
+    <!-- Chart Container -->
+    <div id="chart"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = JSON.parse(localStorage.getItem('filteredSchoolData'));
+            if (data) {
+                updateChart(data);
+            } else {
+                alert('Aucune donnée trouvée. Veuillez d\'abord charger les données sur la page "Recensement des écoles primaires en France".');
+            }
+        });
+
+        // Fonction pour mettre à jour le graphique
+        function updateChart(data) {
+            const chartContainer = d3.select("#chart");
+            chartContainer.selectAll("*").remove(); // Réinitialiser le conteneur du graphique
+
+            if (data.length === 0) {
+                return;
+            }
+
+            // Définir la largeur, la hauteur et le rayon du graphique
+            const vLargeur = 600;
+            const vHauteur = 600;
+            const rayon = Math.min(vLargeur, vHauteur) / 2;
+
+            // Création du SVG avec un container (groupe g)
+            const vSvg = chartContainer.append('svg')
+                .attr('width', vLargeur)
+                .attr('height', vHauteur)
+                .append('g')
+                .attr('transform', 'translate(' + vLargeur / 2 + ',' + vHauteur / 2 + ')');
+
+            // Création d'un tableau de couleurs
+            const vCouleurs = d3.scaleOrdinal(d3.schemeCategory10);
+
+            // Préparation des données pour le graphique
+            const secteurs = data.reduce((acc, curr) => {
+                const secteur = curr['Secteur'];
+                if (secteur) {
+                    if (!acc[secteur]) {
+                        acc[secteur] = 0;
+                    }
+                    acc[secteur]++;
+                }
+                return acc;
+            }, {});
+
+            const secteursArray = Object.keys(secteurs).map(secteur => ({
+                secteur,
+                value: secteurs[secteur]
+            }));
+
+            // Création de l'objet Secteur (pie) du graphique
+            const vPie = d3.pie()
+                .value(d => d.value)
+                .sort(null);
+
+            // Création de l'objet Arc du graphique (avec les rayons intérieur et extérieur)
+            const vArc = d3.arc()
+                .outerRadius(rayon * 0.75)
+                .innerRadius(0);
+
+            // Création des objets arcs dans le graphique
+            const g = vSvg.selectAll('.arc')
+                .data(vPie(secteursArray))
+                .enter().append('g')
+                .attr('class', 'arc');
+
+            // Création des path pour dessiner les arcs à l'écran avec les couleurs associées
+            g.append('path')
+                .attr('d', vArc)
+                .attr('class', 'arc')
+                .attr('fill', (d, i) => vCouleurs(i))
+                .style('stroke', 'black')
+                .style('stroke-width', 0.5);
+
+            // Ajout des valeurs dans les secteurs (positionnées au centre, fonction centroid())
+            g.append('text')
+                .attr('transform', d => 'translate(' + vArc.centroid(d) + ')')
+                .style("font-size", "15px")
+                .style("font-weight", 'bold')
+                .text(d => d.data.secteur + ': ' + d.data.value);
+        }
+    </script>
+</body>
+</html>
+
+
