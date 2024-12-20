@@ -1,20 +1,23 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="fr">
 <head>
+    <header>
+        <h2>Bienvenue sur la page des Indicateurs</h2>
+        <nav>
+            <ul>
+                <li><a href="Accueil.html">Accueil</a></li>
+                <li><a href="Intégration.html">Recensement des écoles primaires en France</a></li>
+                <li><a href="Secteur.html">Indicateurs</a></li>
+            </ul>
+        </nav>
+    </header>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indicateurs - Education AURA</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="Accueil.html">Accueil</a></li>
-            <li><a href="Intégration.html">Recensement des écoles primaires en France</a></li>
-            <li><a href="Secteur.html">Indicateurs</a></li>
-        </ul>
-    </nav>
-    <h2>Bienvenue sur la page des Indicateurs</h2>
+
     <div id="charts">
         <div class="chart-container">
             <div class="chart" id="pieChart"></div>
@@ -24,12 +27,10 @@
             <div class="chart" id="barChart"></div>
             <div class="legend" id="barLegend"></div>
         </div>
-
         <div class="chart-container">
             <div class="chart" id="mapChart"></div>
             <div class="legend" id="mapLegend"></div>
         </div>
-        
     </div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -64,8 +65,9 @@
                 .append("g")
                 .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-            const color = d3.scaleOrdinal(d3.schemeCategory10);
-
+                const color = d3.scaleOrdinal()
+        .domain([0, 1])  // Deux catégories
+        .range([d3.schemeCategory10[4], d3.schemeCategory10[9]]);
             const sectors = data.reduce((acc, curr) => {
                 const sector = curr["Secteur"];
                 if (sector) {
@@ -120,6 +122,7 @@
         }
 
         function renderBarChart(data) {
+            
             const chartContainer = d3.select("#barChart");
             chartContainer.selectAll("*").remove();
 
@@ -161,8 +164,8 @@
                 .nice()
                 .range([height - margin.top - margin.bottom, 0]);
 
-            const color = d3.scaleOrdinal(["#FF7F50", "#87CEEB", "#32CD32", "#FFD700", "#FF6347"]);
-
+                const color = d3.scaleSequential(d3.interpolatePurples)
+                .domain([0, totals.length - 1]);
             svg.append("g")
                 .selectAll("rect")
                 .data(totals)
@@ -206,7 +209,8 @@
                 legendItem.append("span").text(d.short);
             });
 
-            chartContainer.append("h3").text("Répartition des élèves par niveau (hors ULIS)");
+            chartContainer.append("h3").text("Répartition du nombre d'élève par niveau");
+
         }
 
         function renderTreemapChart(data) {
@@ -245,7 +249,9 @@
                 .attr("width", width)
                 .attr("height", height);
 
-            const color = d3.scaleOrdinal(d3.schemeCategory10);
+                const color = d3.scaleSequential(d3.interpolateBlues)
+        .domain([0, departments.length - 1]);  // L'échelle varie de 0 à n-1, où n est le nombre de départements
+
 
             const node = svg.selectAll("g")
                 .data(root.leaves())
@@ -263,7 +269,7 @@
                 .attr("y", 20)
                 .text(d => `${d.data.name}: ${d.data.value}`)
                 .style("font-size", "12px")
-                .style("fill", "white");
+                .style("fill", "black");
 
             chartContainer.append("h3").text("Répartition des écoles par academie");
         }
