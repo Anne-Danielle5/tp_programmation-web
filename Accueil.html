@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accueil</title>
+    <link rel="stylesheet" href="style.css">
+   
 </head>
 <body>
     <header>
@@ -17,27 +19,56 @@
         </nav>
     </header>
     <main>
-        <h2>Accueil</h2>
-        <p>Ceci est la page d'accueil de mon site web.</p>
-
         <section id="themes">
             <h2>Thèmes et Indicateurs</h2>
-            <p>Cette section présente les différents thèmes et indicateurs utilisés pour le recensement des écoles primaires en France.</p>
+            <div class="content">
+                <p>Cette page web traite des écoles primaires dans la région Auvergne-Rhône-Alpes sur l'année 2023</p>
+                <p>Nous aborderons quatre axes d'études à savoir :</p>
+                <ul>
+                    <li>Le recensement des écoles primaires de la région AURA avec leurs caractéristiques</li>
+                    <li>La répartition de ces écoles par secteurs (privé ou public)</li>
+                    <li>L'effectif total d'élèves par niveau</li>
+                    <li>bla bla blo blo</li>
+                </ul>
+            </div>
         </section>
 
         <section id="hypothese">
-            <h2>Hypothèse</h2>
-            <p>Dans cette section, nous discutons des hypothèses formulées concernant les indicateurs et leur impact sur les écoles primaires.</p>
+            <h2>Hypothèses</h2>
+            <div class="content">
+                <p>Au cours de cette étude, nous nous sommes questionnés sur l'accessibilité et la disponibilité des écoles primaires dans la région AURA.</p>
+                <p>De ce fait, nous avons dégagé quelques hypothèses :</p>
+                <!-- Ajoutez les hypothèses ici -->
+            </div>
         </section>
 
         <section id="analyse">
-            <h2>Analyse des Résultats</h2>
-            <p>Cette section est dédiée à l'analyse des résultats obtenus à partir des données recueillies sur les écoles primaires en France.</p>
+            <h2>Bilan des Résultats</h2>
+            <div class="content">
+                <p>Nous avons relevé quelques points d'attention dans la région AURA suite à notre étude :</p>
+                <ul>
+                    <li>Les classes</li>
+                    <li>Le secteur public est dominant par rapport au privé, avec 89% contre 11% quel que soit le département.</li>
+                    <!-- Ajoutez d'autres points ici -->
+                </ul>
+            </div>
         </section>
     </main>
     
     <footer>
         <p>&copy; 2024 MonSiteWeb</p>
     </footer>
+
+    <script>
+        document.querySelectorAll('section h2').forEach(h2 => {
+            h2.addEventListener('mouseover', () => {
+                h2.nextElementSibling.style.display = 'block';
+            });
+
+            h2.addEventListener('mouseout', () => {
+                h2.nextElementSibling.style.display = 'none';
+            });
+        });
+    </script>
 </body>
 </html>
