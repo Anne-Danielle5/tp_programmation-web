@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <header>
+        <h2 style="text-align: center;">Bienvenue dans notre page Web</h2>
+        <title>Recensement des écoles primaires en France</title>
     <nav>
         <ul>
             <li><a href="Accueil.html">Accueil</a></li>
@@ -8,21 +11,22 @@
             <li><a href="Secteur.html">Indicateurs</a></li>
         </ul>
     </nav>
+</header>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recensement des écoles primaires en France</title>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2 style="text-align: center;">Bienvenue dans notre page Web</h2>
+    
 
-    <!-- Input CSV -->
+    <!-- Charger le fichier csv-->
     <div class="filter-container">
         <input type="file" id="csvFile" accept=".csv">
         <button onclick="loadCSV()">Charger le fichier</button>
     </div>
 
-    <!-- Filter Inputs -->
+    <!-- Ajouter les filtres -->
     <div class="filter-container">
         <select id="filterPostal">
             <option value="">Filtrer par Code postal (Tous)</option>
@@ -36,7 +40,7 @@
         <button onclick="applyFilters()">Appliquer le filtre</button>
     </div>
 
-    <!-- Table -->
+    <!-- Création de la table -->
     <table>
         <thead>
             <tr id="tableHeaders"></tr>
@@ -171,5 +175,6 @@
     </script>
 </body>
 </html>
+
 
 
