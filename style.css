@@ -1,6 +1,6 @@
 body {
     font-family: Verdana, Geneva, sans-serif;
-    background-color: #b2bdc6;
+    background-color: #aec7dc;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -54,7 +54,7 @@ h3 {
 }
 
 header {
-    background-color: #007BFF; /* Bleu */
+    background-color:  #57a4c5d0; /* Bleu */
     color: white;
     padding: 15px 0;
 }
@@ -90,7 +90,7 @@ section {
 }
 
 section h2 {
-    background-color: #007BFF; /* Bleu */
+    background-color: #57a4c5d0; /* Bleu */
     color: white;
     padding: 10px;
     margin: -20px -20px 20px -20px;
@@ -139,7 +139,7 @@ th, td {
 }
 
 th {
-    background-color: #EFF6FF;
+    background-color: #0d84ce;
 }
 
 input, button, select {
